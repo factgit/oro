@@ -6,8 +6,8 @@ SendMode Input
 FormatTime, dia, %A_Now%, WDay
 
 if (dia > 1 and dia < 6){
-fechaSalida += 5, days
-fechaEntrega += 6, days
+fechaSalida += 1, days
+fechaEntrega += 2, days
 fechaSalida136 += 1, days
 fechaEntrega136 += 3, days
 }
@@ -35,6 +35,7 @@ fechaEntrega136 := StrReplace(fechaEntrega136, ".", "")
 return
 
 ::z110::
+SEND {TAB 3}
 ;Fecha de entrega
 send %fechaEntrega%{tab 2}
 ;Fecha de salida
@@ -52,6 +53,7 @@ send JYJK70{tab}
 return
 
 ::z110q::
+SEND {TAB 3}
 ;Fecha de entrega
 send %fechaEntrega%{tab 2}
 ;Fecha de salida
@@ -69,6 +71,7 @@ send JYJK70{tab}
 return
 
 ::z122::
+SEND {TAB 3}
 ;Fecha de entrega
 send %fechaEntrega%{tab 2}
 ;Fecha de salida
@@ -86,6 +89,7 @@ send RXWY89-5{tab}
 return
 
 ::z124::
+SEND {TAB 3}
 ;Fecha de entrega
 send %fechaEntrega%{tab 2}
 ;Fecha de salida
@@ -103,6 +107,7 @@ send RYTY65-1{tab}
 return
 
 ::z136::
+SEND {TAB 3}
 ;Fecha de entrega
 send %fechaEntrega136%{tab 2}
 ;Fecha de salida
@@ -128,7 +133,7 @@ SendInput {F3 2}{y}{F10}{s 4}{enter 2}
 Return
 
 !1::
-send falta orden de compra{TAB}Buen día.{enter}por favor enviar orden de compra del pedido:{enter}{enter}Gracias.{up}
+send falta orden de compra{TAB}Buen día.{enter}por favor enviar orden de compra del pedido:{enter}PEDIDO{TAB}OC{enter 2}Gracias.{up}
 return
 
 
@@ -143,3 +148,8 @@ return
 ^+::
 send .Mas123456789#
 return
+
+!2::
+send Pedidos bloqueados{TAB}Buen día, nos ayudas por favor con estos Rut para despachar los pedidos{enter}RUT{TAB 2}CC{enter 2}Gracias.{up}
+return
+
