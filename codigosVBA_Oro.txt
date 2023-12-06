@@ -1,0 +1,480 @@
+Sub ImportarDatosCSV()
+Rem Declarar variables
+    Dim ArchivoCSV As String ' ruta
+    Dim HojaDestino As Worksheet 'hoja Ser18
+    Dim HojaObservaciones As Worksheet 'hoja observaciones
+    Dim HojaVendedores As Worksheet 'hoja vendedores
+    Dim HojaHes As Worksheet   'hoja hes
+    Dim UltimaFilaSer18 As Long ' variable rut
+    Dim FilaSer18 As Long
+    Dim DatoSer18 As String
+    Dim RangoObservaciones As Range
+    Dim UltimafilaObservaciones As Long 'rut en hoja observaciones
+    Dim FilaObservaciones As Long
+    Dim UltimaFilaVendedores As Long
+    Dim FilaVendedores As Long
+    Dim UltimaFilaHes As Long
+    'variables para requiere HES
+    Dim wsSer18 As Worksheet
+    Dim wsHes As Worksheet
+    Dim lastRowSer18 As Long
+    Dim lastRowHes As Long
+    Dim i As Long, j As Long
+    Dim existe As Boolean
+    
+    
+    
+'ESTABLECER RUTA Y HOJAS PARA TRABAJAR
+    ' Establecer la ruta del archivo CSV
+    ArchivoCSV = "C:\Users\HAC\Desktop\Ser-18.csv" ' Reemplaza con la ruta de tu archivo CSV
+
+    ' Caso no esté el archivo en la carpeta Reporte
+    If Dir(ArchivoCSV) = "" Then
+        MsgBox ("No hay archivo Ser-18 en la carpeta Reporte")
+    Else
+        ' Establecer la hoja de destino en la que deseas importar los datos
+       On Error Resume Next
+        Set HojaDestino = ThisWorkbook.Sheets("Ser-18")
+        On Error GoTo 0
+
+           Columns("A:R").Clear
+           HojaDestino.AutoFilterMode = False
+        
+
+        ' Establecer la hoja "Observaciones"
+        Set HojaObservaciones = ThisWorkbook.Sheets("Observaciones")
+        
+        'establecer la hoja "hes"
+        Set HojaHes = ThisWorkbook.Sheets("Hes")
+        
+         
+        ' Establecer la hoja "Vendedores"
+        Set HojaVendedores = ThisWorkbook.Sheets("Vendedores")
+
+        ' Deshabilitar actualizaciones de pantalla y eventos
+        Application.ScreenUpdating = False
+        Application.EnableEvents = False
+
+'IMPORTAR DATOS
+        ' Importar datos desde el archivo CSV
+        With HojaDestino.QueryTables.Add(Connection:="TEXT;" & ArchivoCSV, Destination:=HojaDestino.Range("A1"))
+            .TextFileParseType = xlDelimited
+            .TextFileConsecutiveDelimiter = False
+            .TextFileTabDelimiter = False
+            .TextFileSemicolonDelimiter = False
+            .TextFileCommaDelimiter = True ' Cambiar a True si el CSV usa comas como delimitador
+            .TextFileSpaceDelimiter = False
+            .TextFileColumnDataTypes = Array(1) ' 1 = Texto, 2 = Número, 3 = Fecha, etc. Puedes ajustar según tus necesidades.
+            .Refresh
+        End With
+
+'LIMPIAR Y EDITAR HOJA SER-18 PARA TRABAJAR
+        ' Eliminar las primeras 5 filas
+        HojaDestino.Rows("1:5").Delete
+
+        ' Eliminar filas con celdas vacías a partir de la fila 6 en la columna 6
+        Dim UltimaFila As Long
+        UltimaFila = HojaDestino.Cells(Rows.Count, 6).End(xlUp).Row
+        Dim Fila As Long
+
+        For Fila = UltimaFila To 2 Step -1
+            If IsEmpty(HojaDestino.Cells(Fila, 6)) Then
+                HojaDestino.Rows(Fila).Delete
+            End If
+        Next Fila
+
+        ' Colocar los datos en las columnas Q, R, S, T, U
+        HojaDestino.Range("N:N").Cut Destination:=HojaDestino.Range("Q:Q")
+        HojaDestino.Range("O:O").Cut Destination:=HojaDestino.Range("R:R")
+        HojaDestino.Range("J:J").Cut Destination:=HojaDestino.Range("S:S")
+        HojaDestino.Range("K:K").Cut Destination:=HojaDestino.Range("T:T")
+        HojaDestino.Range("L:L").Cut Destination:=HojaDestino.Range("U:U")
+        HojaDestino.Range("M:M").Cut Destination:=HojaDestino.Range("V:V")
+
+        ' Eliminar columnas J ,K ,L y M
+        HojaDestino.Columns("J:J").Delete
+        HojaDestino.Columns("K:K").Delete
+        HojaDestino.Columns("L:L").Delete
+        HojaDestino.Columns("M:M").Delete
+        
+        
+        
+        ' Asignar columnas para "Nombre Vendedor y Observación"
+        HojaDestino.Range("J1").Value = "Nombre Vend."
+        HojaDestino.Range("K1").Value = "Estado Hes"
+        HojaDestino.Range("L1").Value = "Observaciones"
+        HojaDestino.Range("N1").Value = "Requiere HES"
+        
+        'Dar formatos moneda a columnas O, P y Q
+        'HojaDestino.Columns("O:Q").format=
+        
+
+        ' Habilitar filtro estándar
+      
+        ' Inmovilizar fila 1
+        HojaDestino.Rows("1:1").Select
+        HojaDestino.Rows("1:1").Font.Bold = True
+        HojaDestino.Rows("1:1").Interior.Color = RGB(180, 198, 231)
+        ActiveWindow.FreezePanes = True
+        
+        
+'OBTENER ULTIMAS FILAS PARA PARA CICLOS
+        ' Obtener la última fila en la hoja "Ser-18" en la columna C (3) "RUT"
+        UltimaFilaSer18 = HojaDestino.Cells(Rows.Count, 3).End(xlUp).Row
+
+        ' Obtener la última fila en la hoja "Observaciones" en la columna A (1)
+        UltimafilaObservaciones = HojaObservaciones.Cells(Rows.Count, 1).End(xlUp).Row
+        
+        'obtener ultima fila columna A en hoja "Hes"
+        UltimaFilaHes = ThisWorkbook.Sheets("Hes").Cells(ThisWorkbook.Sheets("Hes").Rows.Count, 1).End(xlUp).Row
+        
+        'Obtener ultima fila en columa N (14)"Requiere HES"
+        UltimaFilaReqHes = HojaDestino.Cells(Rows.Count, 14).End(xlUp).Row
+        
+        
+'BUSQUEDA Y EDITADO DE COLUMAS J ,K     (VENDEDORES, OBSERVACIONES)
+' Iterar a través de las filas en la hoja "Ser-18"
+       
+        
+        For FilaSer18 = 2 To UltimaFilaSer18 ' Empezando desde la segunda fila, supongo
+            DatoSer18 = HojaDestino.Cells(FilaSer18, 3).Value ' Valor en la columna C de "Ser-18" ( rut)
+
+            ' Buscar el dato de "Ser-18" en la hoja "Observaciones"
+            Set RangoObservaciones = HojaObservaciones.Columns(1).Find(DatoSer18, LookIn:=xlValues)
+
+            If Not RangoObservaciones Is Nothing Then
+                ' Si se encuentra el dato, colocar el valor correspondiente en la columna K de "Ser-18"
+                HojaDestino.Cells(FilaSer18, 12).Value = RangoObservaciones.Offset(0, 1).Value ' Columna B de "Observaciones"
+            End If
+        Next FilaSer18
+        
+'AGREGA RUT A "HOJA HES" SOLO SI NO ESTA EN COLUMNA N(14) PARA POSTERIOR ESTADO DE HES
+   Set wsSer18 = ThisWorkbook.Sheets("Ser-18")
+    Set wsHes = ThisWorkbook.Sheets("Hes")
+    
+    'ultimas filas para rut  en ser18 y rut en hes
+    lastRowSer18 = wsSer18.Cells(wsSer18.Rows.Count, 3).End(xlUp).Row
+    lastRowHes = wsHes.Cells(wsHes.Rows.Count, 1).End(xlUp).Row
+    
+    'itinerar rut en  ser18
+    For i = 2 To lastRowSer18 ' Asumiendo que la fila 1 tiene encabezados
+        
+        existe = False
+        
+        'primera condición: No repetidos en columna 1 de Hes
+        For j = 2 To lastRowHes
+            If wsSer18.Cells(i, 3).Value = wsHes.Cells(j, 1).Value Then
+                existe = True
+                
+                Exit For
+            End If
+        Next j
+        
+        ' Verificar la segunda condición: "Requiere HES" en columna 14 de Ser-18
+        If Not existe And wsSer18.Cells(i, 14).Value = "Requiere HES" Then
+            lastRowHes = lastRowHes + 1
+            wsHes.Cells(lastRowHes, 1).Value = wsSer18.Cells(i, 3).Value
+            wsSer18.Cells(i, 3).Interior.Color = RGB(255, 235, 156)
+            wsSer18.Cells(i, 3).Font.Color = RGB(156, 87, 0)
+    
+         End If
+    Next i
+        
+'INICIO PARA "ESTADO HES" Y FORMATOS DEL MISMO
+        
+        For FilaSer18 = 2 To UltimaFilaSer18 ' Empezando desde la segunda fila
+        DatoSer18 = HojaDestino.Cells(FilaSer18, 3).Value ' Valor en la columna C de "Ser-18"
+
+             Dim CoincideHes As Boolean
+             CoincideHes = False
+        For Each HesCel In ThisWorkbook.Sheets("Hes").Range("A2:A" & UltimaFilaHes)
+            If HesCel.Value = DatoSer18 Then
+                CoincideHes = True
+                Exit For
+            End If
+        Next HesCel
+
+        ' Actualizar el estado en la columna K de "Ser-18" según las condiciones
+        If CoincideHes Then
+            If HojaDestino.Cells(FilaSer18, "M").Value <> "" Then
+                HojaDestino.Cells(FilaSer18, "K").Value = "Ingresada"
+                HojaDestino.Cells(FilaSer18, "K").Interior.Color = RGB(198, 239, 206)
+                HojaDestino.Cells(FilaSer18, "K").Font.Color = RGB(0, 97, 0)
+            Else
+                HojaDestino.Cells(FilaSer18, "K").Value = "Falta Ingresar"
+                HojaDestino.Cells(FilaSer18, "K").Interior.Color = RGB(255, 199, 206)
+                HojaDestino.Cells(FilaSer18, "K").Font.Color = RGB(156, 0, 6)
+                
+            End If
+        End If
+    Next FilaSer18
+
+    ' Limpiar valores en la columna K de "Ser-18" para las filas donde no hubo coincidencia
+    For FilaSer18 = 2 To UltimaFilaSer18
+        If HojaDestino.Cells(FilaSer18, "K").Value <> "Ingresada" And HojaDestino.Cells(FilaSer18, "K").Value <> "Falta Ingresar" Then
+            HojaDestino.Cells(FilaSer18, "K").Value = ""
+        End If
+    Next FilaSer18
+         
+
+        ' Extraer datos de la columna B de la hoja "Vendedores" según la búsqueda en la columna I de "Ser-18"
+        UltimaFilaSer18 = HojaDestino.Cells(Rows.Count, 9).End(xlUp).Row ' Columna I de "Ser-18"
+        UltimaFilaVendedores = HojaVendedores.Cells(Rows.Count, 1).End(xlUp).Row ' Última fila en "Vendedores"
+
+        For FilaSer18 = 2 To UltimaFilaSer18
+            DatoSer18 = HojaDestino.Cells(FilaSer18, 9).Value ' Valor en columna I de "Ser-18"
+            ' Buscar el nombre del vendedor en la hoja "Vendedores"
+            For FilaVendedores = 2 To UltimaFilaVendedores
+                If HojaVendedores.Cells(FilaVendedores, 1).Value = DatoSer18 Then
+                    ' Si se encuentra el nombre del vendedor, extraer datos de la columna A de "Vendedores" y colocarlos en la columna J de "Ser-18"
+                    HojaDestino.Cells(FilaSer18, 10).Value = HojaVendedores.Cells(FilaVendedores, 2).Value ' Columna A de "Vendedores" en columna k de "Ser-18"
+                    Exit For ' Salir del bucle una vez encontrado el nombre
+                End If
+            Next FilaVendedores
+        Next FilaSer18
+
+'ESPACIOS EN BLANCO PARA COLUMAS K y M (LLEVA HES Y HES)
+        
+        Set HojaDestino = ThisWorkbook.Sheets("Ser-18")
+        
+        For ColumLLevahes = 2 To UltimaFilaSer18
+             If HojaDestino.Cells(ColumLLevahes, 11).Value = "" Then
+                 HojaDestino.Cells(ColumLLevahes, 11).Value = " "
+                 
+            End If
+        Next ColumLLevahes
+        
+        
+         
+       For ColumObserv = 2 To UltimaFilaSer18
+            If HojaDestino.Cells(ColumObserv, 13).Value = "" Then
+                HojaDestino.Cells(ColumObserv, 13).Value = " "
+            End If
+        Next ColumObserv
+   
+        
+'OBTENER DATOS Y EDITAR COLOR COLUMNA L  (Observaciones)
+        ' Última fila en la columna L
+           
+           UltimaFilaSer18 = HojaDestino.Cells(Rows.Count, 12).End(xlUp).Row
+        
+        ' Aplicar formato fuente  rojo a la columna L
+        HojaDestino.Range("L2:L" & UltimaFilaSer18).Font.Color = RGB(255, 0, 0)
+        HojaDestino.Range("N:R").Font.Color = RGB(0, 0, 0)
+        HojaDestino.Range("S1:XFD1").Interior.Color = RGB(255, 255, 255)
+        
+         HojaDestino.AutoFilterMode = False ' Desactivar los filtros existentes
+        HojaDestino.Cells(1, 1).AutoFilter ' Habilitar los filtros en la primera fila
+        
+            
+         ' Habilitar actualizaciones de pantalla y eventos
+        Application.ScreenUpdating = False
+        Application.EnableEvents = False
+        
+        ' Liberar recursos,
+        Set HojaDestino = Nothing
+        Set HojaObservaciones = Nothing
+        Set HojaVendedores = Nothing
+    End If
+   
+     
+End Sub
+
+-----------------------------------------------------------------------------------------------------------
+
+Sub ActualizarHEsObserv()
+ Dim HojaDestino As Worksheet
+ Dim LastrowK As Long
+ Dim LastrowL As Long
+ 
+    ' Cambiar Hoja1 a la hoja en la que deseas aplicar la fórmula
+    Set HojaDestino = ThisWorkbook.Sheets("Ser-18")
+    HojaDestino.Activate
+
+    ' Definir la última fila en la columna K  y L con datos
+   
+    LastrowK = Cells(Rows.Count, "K").End(xlUp).Row
+    LastrowL = Cells(Rows.Count, "L").End(xlUp).Row
+    
+    
+    ' Bucle para aplicar la fórmula en todas las filas de la columna K a partir de la fila 2
+    For i = 2 To LastrowK
+       
+     HojaDestino.Cells(i, "K").FormulaR1C1 = "=IFERROR(IF(AND(VLOOKUP(RC3,Hes!C1:C2, 1, FALSE), RC13<>"" ""), ""Ingresada"", ""Falta Ingresar""), "" "")"
+          If HojaDestino.Cells(i, "K").Value = "Ingresada" Then
+                HojaDestino.Cells(i, "K").Interior.Color = RGB(198, 239, 206)
+                 HojaDestino.Cells(i, "K").Font.Color = RGB(0, 97, 0)
+              Else
+                 If HojaDestino.Cells(i, "K").Value = "Falta Ingresar" Then
+                     HojaDestino.Cells(i, "K").Interior.Color = RGB(255, 199, 206)
+                    HojaDestino.Cells(i, "K").Font.Color = RGB(156, 0, 6)
+                  Else
+                  HojaDestino.Cells(i, "K").ClearFormats
+                End If
+          End If
+        
+        Next i
+     For j = 2 To LastrowL
+            HojaDestino.Cells(j, "L").FormulaR1C1 = "=IFERROR(VLOOKUP(RC3,Observaciones!C1:C2,2,false),"" "")"
+        If HojaDestino.Cells(j, "L").Value = 0 Then
+            HojaDestino.Cells(j, "L").Value = " "
+            
+          End If
+     Next j
+     
+     
+    
+  Set HojaDestino = Nothing
+  
+  
+      
+End Sub
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+Sub Ingresohes()
+    Dim HojaSer18toHes As Worksheet
+    Dim h As Long
+    Dim DatosGuiasHes As String
+    Dim DatosOCHes As String
+    Dim DatosFechaHes As String
+    Dim DestinoFile As Object
+    Dim FileNum As Integer
+    Dim FilePath As String
+
+    Set HojaSer18toHes = ThisWorkbook.Sheets("Ser-18")
+
+    FilePath = "C:\mis documentos\reporte\archivo.csv"
+
+    Set DestinoFile = CreateObject("Scripting.FileSystemObject")
+
+    FileNum = FreeFile
+    Open FilePath For Append As #FileNum
+
+    
+    UltimaFilaDestino = 1
+
+    For h = 1 To HojaSer18toHes.Cells(Rows.Count, 11).End(xlUp).Row
+        If HojaSer18toHes.Cells(h, 11).Value = "Falta Ingresar" Then
+            DatosGuiasHes = CStr(HojaSer18toHes.Cells(h, 8).Value)
+            DatosOCHes = CStr(HojaSer18toHes.Cells(h, 5).Value)
+            DatosFechaHes = Format(HojaSer18toHes.Cells(h, 7).Value, "dd-mm-yyyy")
+            
+            
+            Write #FileNum, DatosGuiasHes, DatosOCHes, DatosOCHes, DatosFechaHes
+            
+            
+            UltimaFilaDestino = UltimaFilaDestino + 1
+        End If
+    Next h
+
+    Close #FileNum
+
+    Set DestinoFile = Nothing
+End Sub
+
+-----------------------------------------------------------------------------------------------------------------
+
+Sub limpiarSer18()
+Dim HojaDest As Worksheet
+    
+Set HojaDest = ThisWorkbook.Sheets("Ser-18")
+   HojaDest.AutoFilterMode = False 
+
+ Columns("A:S").Select
+    Selection.Clear
+    Range("A1").Select
+    Application.ScreenUpdating = False
+End Sub
+
+
+----------------------------------------------------------------------------------------------
+
+
+Sub CopiarFilasColumnasConcatenadas()
+    Dim ws As Worksheet
+    Dim rngFila As Range
+    Dim rngColumnas As Range
+    Dim Fila As Range
+    Dim copiar As DataObject
+    Dim ConcatValue As String
+
+    ' Establece la hoja de trabajo en la que deseas trabajar
+      Set ws = ThisWorkbook.Sheets("Ser-18")
+  
+  ' Borra el portapapeles
+    Application.CutCopyMode = False
+    
+    Rem inicia como cadena vacia ConcatValue
+    ConcatValue = ""
+    
+    
+    Rem Recorre cada fila en la hoja
+    For Each Fila In ws.UsedRange.Rows
+        ' Verifica si la fila no está oculta y si no está en la fila de encabezado
+        If Not Fila.EntireRow.Hidden And Fila.Row > 1 Then
+              
+            ' Copia el rango de columnas en la fila actual
+            ConcatValue = ConcatValue & Fila.Cells(2, 3).Value & Fila.Cells(2, 4).Value & Fila.Cells(2, 5).Value & vbCrLf
+   
+        End If
+    Next Fila
+    
+    Rem elimina ultimo salto de linea
+    If Len(ConcatValues) > 0 Then
+        ConcatValues = Left(ConcatValues, Len(ConcatValues) - 2)
+    End If
+     
+    Rem copiado al portapapeles
+     Set copiar = New DataObject
+    copiar.SetText ConcatValue
+    copiar.PutInClipboard
+    
+    End Sub
+
+---------------------------------------------------------------------------------------------------------------
+
+Dim lastFilter As String
+
+Sub AvanceDeFiltro()
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim currentFilter As String
+    Dim nextFilter As String
+    Dim cell As Range
+
+    Set ws = ThisWorkbook.Sheets("Ser-18")
+    Set rng = ws.Range("C2:C" & ws.Cells(ws.Rows.Count, "C").End(xlUp).Row)
+
+    If ws.AutoFilterMode Then
+        ws.AutoFilterMode = False
+    End If
+    
+    currentFilter = lastFilter
+
+    
+    For Each cell In rng
+        If cell.Value > currentFilter Then
+            nextFilter = cell.Value
+            Exit For
+        End If
+    Next cell
+
+    
+    If nextFilter <> "" Then
+        ws.Range("A1:C" & ws.Cells(ws.Rows.Count, "C").End(xlUp).Row).AutoFilter Field:=3, Criteria1:=nextFilter
+        lastFilter = nextFilter
+    End If
+End Sub
+
+
+
+
+
+
+
+
+
+
