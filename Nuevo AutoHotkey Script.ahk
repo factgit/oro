@@ -15,7 +15,7 @@ else if (dia = 6){
 fechaSalida += 3, days
 fechaEntrega += 4, days
 fechaSalida136 += 1, days
-fechaEntrega136 += 2, days
+fechaEntrega136 += 3, days
 }
 else if (dia = 7){
 fechaSalida += 2, days
