@@ -1,0 +1,368 @@
+Private Sub BT_agregar_Click()
+     Me.Height = 405
+     Me.TextNuevoRUT.Enabled = True
+     Me.TextNuevoRUT.SetFocus
+     Me.BT_agregar.Enabled = False
+     Me.BT_modificar.Enabled = False
+     Me.BT_eliminar.Enabled = False
+     Me.TextOBS.Enabled = False
+     Me.TextRUT.Enabled = False
+     Me.LT_observ.Enabled = False
+     Me.BT_NuevoModificar.Enabled = False
+     Me.TextOBS.BackColor = RGB(199, 199, 199)
+     Me.TextRUT.BackColor = RGB(199, 199, 199)
+     Me.Label_INGR_MODF.Caption = "INGRESE EL NUEVO RUT Y OBSERVACION"
+     Me.BT_agregar.BackColor = RGB(199, 199, 199)
+     Me.BT_modificar.BackColor = RGB(199, 199, 199)
+     Me.BT_eliminar.BackColor = RGB(199, 199, 199)
+     Me.BT_NuevoModificar.BackColor = RGB(199, 199, 199)
+
+End Sub
+
+Private Sub BT_atras_Click()
+     Me.Height = 276
+     Me.BT_agregar.Enabled = True
+     Me.BT_modificar.Enabled = True
+     Me.BT_eliminar.Enabled = True
+     Me.LT_observ.Enabled = True
+     Me.TextRUT.Enabled = True
+     Me.TextOBS.Enabled = True
+     Me.BT_NuevoAgregar.Enabled = True
+     Me.BT_NuevoModificar.Enabled = True
+     Me.TextOBS.BackColor = RGB(255, 255, 255)
+     Me.TextRUT.BackColor = RGB(255, 255, 255)
+     Me.TextRUT.ForeColor = RGB(0, 0, 0)
+     Me.BT_agregar.BackColor = RGB(0, 0, 0)
+     Me.BT_modificar.BackColor = RGB(0, 0, 0)
+     Me.BT_eliminar.BackColor = RGB(0, 0, 0)
+     Me.BT_NuevoAgregar.BackColor = RGB(0, 0, 0)
+     Me.BT_NuevoModificar.BackColor = RGB(0, 0, 0)
+     Me.TextNuevaOBS.Value = Empty
+     Me.TextNuevoRUT.Value = Empty
+     Me.TextOBS.Value = Empty
+     Me.TextRUT.Value = Empty
+     Me.TextRUT.SetFocus
+     
+End Sub
+
+Private Sub BT_eliminar_Click()
+    Me.Height = 276
+    DatoRutOBSeliminar = Hoja3.Range("A" & Rows.Count).End(xlUp).Row
+    
+    
+    If Me.LT_observ.ListIndex = -1 Then
+        MsgBox "DALE CLICK A UN RUT EN LA LISTA", vbInformation
+        Me.LT_observ.SetFocus
+        Me.TextRUT.SelStart = 0
+        Me.TextRUT.SelLength = Len(Me.TextRUT.Text)
+        
+    Else
+        Dim RUTEliminar As Boolean
+        RUTEliminar = False
+
+        Dim RutSeleccionado As String
+        RutSeleccionado = Trim(Me.LT_observ.List(Me.LT_observ.ListIndex, 0))
+
+        For i = 2 To DatoRutOBSeliminar
+            If Trim(Hoja3.Cells(i, 1).Value) = RutSeleccionado Then
+                RUTEliminar = True
+                Hoja3.Rows(i).Delete
+                MsgBox "RUT ELIMINADO", vbInformation
+                Me.TextRUT.SetFocus
+                Me.TextRUT.Value = Empty
+                ActiveWorkbook.Save
+            Exit For
+           
+            End If
+        Next i
+
+        If Not RUTEliminar Then
+            MsgBox "EL RUT NO SE PUEDE ELIMINAR DADO QUE NO ESTÁ EN LA HOJA OBSERVACIONES", vbExclamation
+            Me.TextRUT.SetFocus
+            Me.TextRUT.SelStart = 0
+            Me.TextRUT.SelLength = Len(Me.TextRUT.Text)
+        End If
+    End If
+    
+End Sub
+
+
+Private Sub BT_modificar_Click()
+    DatoRutOBS = Hoja3.Range("A" & Rows.Count).End(xlUp).Row
+   
+    If Len(Trim(TextRUT.Value)) > 0 Then
+        Dim RUTEncontrado As Boolean
+        RUTEncontrado = False
+        
+        For i = 2 To DatoRutOBS
+            If Trim(Me.TextRUT.Value) = Trim(Hoja3.Cells(i, 1).Value) Then
+               Me.TextNuevoRUT.Value = Trim(Hoja3.Cells(i, 1).Value)
+                Me.TextNuevaOBS.Value = Trim(Hoja3.Cells(i, 2).Value)
+                Me.TextNuevaOBS.SetFocus
+                RUTEncontrado = True
+            Me.BT_agregar.Enabled = False
+            Me.BT_modificar.Enabled = False
+            Me.BT_eliminar.Enabled = False
+            Me.LT_observ.Enabled = False
+            Me.BT_NuevoAgregar.Enabled = False
+            Me.Height = 405
+            Me.TextNuevoRUT.Enabled = False
+            Me.TextOBS.BackColor = RGB(199, 199, 199)
+            Me.TextRUT.BackColor = RGB(199, 199, 199)
+            Me.TextRUT.ForeColor = RGB(255, 255, 255)
+            Me.BT_agregar.BackColor = RGB(199, 199, 199)
+            Me.BT_modificar.BackColor = RGB(199, 199, 199)
+            Me.BT_eliminar.BackColor = RGB(199, 199, 199)
+            Me.BT_NuevoAgregar.BackColor = RGB(199, 199, 199)
+            Me.Label_INGR_MODF.Left = 105
+            Me.Label_INGR_MODF.Caption = "MODIFIQUE LA OBSERVACION"
+            Me.TextNuevaOBS.SetFocus
+            Me.TextNuevaOBS.SelStart = 0
+            Me.TextNuevaOBS.SelLength = Len(Me.TextNuevaOBS.Text)
+            Me.TextNuevaOBS.ZOrder
+                Exit For ' Salir del bucle una vez que se encuentra el RUT
+            End If
+        Next i
+        
+        If Not RUTEncontrado Then
+            MsgBox "RUT NO TIENE OBSERVACION" & vbCrLf & "INGRESA EL RUT COMPLETO O SELECCIONA DE LA LISTA CON DOBLE CLICK", vbExclamation
+            Me.TextRUT.SetFocus
+            Me.TextRUT.SelStart = 0
+            Me.TextRUT.SelLength = Len(TextRUT.Text)
+        End If
+    Else
+        MsgBox "NO HAY RUT A MODIFICAR." & vbCrLf & "INGRESA UN RUT O SELECCIONA DE LA LISTA CON DOBLE CLICK", vbExclamation
+        Me.TextRUT.SetFocus
+    End If
+End Sub
+
+Private Sub BT_NuevoAgregar_Click()
+  UltimaOBS = Hoja3.Range("A" & Rows.Count).End(xlUp).Row
+  CAMBIOeliminar = Hoja8.Range("A" & Rows.Count).End(xlUp).Row
+   If Me.TextNuevoRUT.Value = Empty Or Me.TextNuevaOBS.Value = Empty Then
+      MsgBox "INGRESA EL RUT A AGREGAR y/o OBSERVACION", vbExclamation
+      Me.TextNuevoRUT.SetFocus
+    Else
+     
+       If Len(Trim(Me.TextNuevoRUT.Value)) > 0 Then
+        Dim RUTobs As Boolean
+        RUTobs = False
+         For i = 2 To UltimaOBS
+           If Trim(Me.TextNuevoRUT.Value) = Trim(Hoja3.Cells(i, 1).Value) Then
+             MsgBox "RUT YA TIENE OBSERVACION, MODIFIQUE SI ES NECESARO", vbExclamation
+             Me.BT_NuevoAgregar.Enabled = False
+             Me.BT_NuevoModificar.Enabled = True
+             Me.TextNuevoRUT.Enabled = False
+             Me.TextNuevaOBS.Value = Trim(Hoja3.Cells(i, 2).Value)
+             Me.TextNuevaOBS.SetFocus
+             Me.TextNuevaOBS.SelStart = 0
+             Me.TextNuevaOBS.SelLength = Len(Me.TextNuevaOBS.Text)
+             Me.BT_NuevoAgregar.BackColor = RGB(199, 199, 199)
+             RUTobs = True
+          End If
+         Next i
+        If Not RUTobs Then
+         UltimaOBS = UltimaOBS + 1
+         Hoja3.Cells(i, 1).Value = Me.TextNuevoRUT.Value
+         Hoja3.Cells(i, 2).Value = Me.TextNuevaOBS.Value
+         Me.BT_NuevoAgregar.Enabled = True
+         Me.TextNuevoRUT.SetFocus
+         Me.TextNuevoRUT.Value = Empty
+         Me.TextNuevaOBS.Value = Empty
+         ActiveWorkbook.Save
+        End If
+      End If
+    End If
+End Sub
+   
+Private Sub BT_NuevoModificar_Click()
+    Dim OBsUltima As Long
+    Dim TxtRUT As String
+
+    ' Obtener la última fila de Hoja3
+    OBsUltima = Hoja3.Range("A" & Rows.Count).End(xlUp).Row
+
+    ' Obtener la última fila de Hoja8
+    
+    If Len(Trim(Me.TextNuevoRUT.Value)) > 0 Then
+        Dim RUTobsMod As Boolean
+        RUTobsMod = False
+        TxtRUT = Trim(Me.TextNuevoRUT.Value)
+
+        For i = 2 To OBsUltima
+            If Trim(Me.TextNuevoRUT.Value) = Trim(Hoja3.Cells(i, 1).Value) Then
+                RUTobsMod = True
+                Hoja3.Cells(i, 2).Value = Trim(Me.TextNuevaOBS.Value)
+                MsgBox "RUT MODIFICADO", vbInformation
+                Me.Height = 276
+
+                
+                Me.BT_agregar.Enabled = True
+                Me.BT_modificar.Enabled = True
+                Me.BT_eliminar.Enabled = True
+                Me.LT_observ.Enabled = True
+                Me.TextRUT.Enabled = True
+                Me.TextOBS.Enabled = True
+                Me.BT_NuevoAgregar.Enabled = True
+                Me.BT_NuevoModificar.Enabled = True
+
+               
+                Me.TextOBS.BackColor = RGB(255, 255, 255)
+                Me.TextRUT.BackColor = RGB(255, 255, 255)
+                Me.BT_agregar.BackColor = RGB(0, 0, 0)
+                Me.BT_modificar.BackColor = RGB(0, 0, 0)
+                Me.BT_eliminar.BackColor = RGB(0, 0, 0)
+                Me.BT_NuevoAgregar.BackColor = RGB(0, 0, 0)
+                Me.BT_NuevoModificar.BackColor = RGB(0, 0, 0)
+
+               
+                Me.TextNuevaOBS.Value = Empty
+                Me.TextNuevoRUT.Value = Empty
+                Me.TextOBS.Value = Empty
+                Me.TextRUT.Value = Empty
+                Me.TextRUT.SetFocus
+
+                ' Utilizar una variable diferente para indexar en la Hoja8
+                Dim j As Long
+                Dim ultimaFilaHoja8 As Long
+                ultimaFilaHoja8 = Hoja8.Cells(Rows.Count, 1).End(xlUp).Row + 1
+
+                ' Asegurarse de que ultimaFilaHoja8 no sea menor que 2
+                If ultimaFilaHoja8 < 2 Then
+                    ultimaFilaHoja8 = 2
+                End If
+
+                Hoja8.Cells(ultimaFilaHoja8, 1).Value = Trim(TxtRUT)
+                Hoja8.Cells(ultimaFilaHoja8, 2).Value = "MODIFICACION"
+                Hoja8.Cells(ultimaFilaHoja8, 3).Value = Now
+                Exit For
+            End If
+        Next i
+    End If
+    ActiveWorkbook.Save
+End Sub
+
+
+
+Private Sub LT_observ_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    Me.Height = 405
+    Me.BT_agregar.Enabled = False
+    Me.BT_modificar.Enabled = False
+    Me.BT_eliminar.Enabled = False
+    Me.TextOBS.Enabled = False
+    Me.TextRUT.Enabled = False
+    Me.TextOBS.BackColor = RGB(199, 199, 199)
+    Me.TextRUT.BackColor = RGB(199, 199, 199)
+    Me.TextNuevoRUT.Enabled = False
+    Me.BT_agregar.BackColor = RGB(199, 199, 199)
+    Me.BT_modificar.BackColor = RGB(199, 199, 199)
+    Me.BT_eliminar.BackColor = RGB(199, 199, 199)
+    Me.Label_INGR_MODF.Left = 105
+    Me.Label_INGR_MODF.Caption = "MODIFIQUE LA OBSERVACION"
+    Me.BT_NuevoAgregar.Enabled = False
+    Me.BT_NuevoAgregar.BackColor = RGB(199, 199, 199)
+    
+    If LT_observ.ListIndex <> -1 Then
+        TextNuevoRUT.Value = LT_observ.List(LT_observ.ListIndex, 0)
+        TextNuevaOBS.Value = LT_observ.List(LT_observ.ListIndex, 1)
+        Me.TextNuevaOBS.SetFocus
+        Me.TextNuevaOBS.SelStart = 0
+        Me.TextNuevaOBS.SelLength = Len(Me.TextNuevaOBS.Text)
+    End If
+End Sub
+
+
+Private Sub TextNuevaOBS_Change()
+Me.TextNuevaOBS.Value = UCase(Me.TextNuevaOBS.Value)
+
+End Sub
+
+
+
+Private Sub TextRUT_Change()
+ NumeroDatosRUT = Hoja3.Range("A" & Rows.Count).End(xlUp).Row
+   Me.LT_observ = Clear
+   Me.LT_observ.RowSource = Clear
+   Y = 0
+   Me.LT_observ.ColumnCount = 2
+   
+    For Fila = 2 To NumeroDatosRUT
+      Rut = Hoja3.Cells(Fila, 1).Value
+        If UCase(Rut) Like "*" & UCase(Me.TextRUT.Value) & "*" Then
+         Me.LT_observ.AddItem
+         Me.LT_observ.List(Y, 0) = Hoja3.Cells(Fila, 1).Value
+         Me.LT_observ.List(Y, 1) = Hoja3.Cells(Fila, 2).Value
+         Y = Y + 1
+    
+        End If
+        Next
+        
+        
+     If Me.LT_observ.ListCount = 0 Then
+        Dim respuestaRUT As VbMsgBoxResult
+        respuestaRUT = MsgBox("RUT NO TIENE OBSERVACIONES" & vbCrLf & "¿QUIERES AGREGAR?", vbQuestion + vbYesNo, "SIN OBSERVACIONES")
+
+        If respuestaRUT = vbYes Then
+          Me.Height = 405
+          Me.TextOBS.Enabled = False
+          Me.TextRUT.Enabled = False
+          Me.LT_observ.Enabled = False
+          Me.TextNuevoRUT.Enabled = True
+          Me.TextNuevoRUT.SetFocus
+          Me.BT_agregar.Enabled = False
+          Me.BT_modificar.Enabled = False
+          Me.BT_eliminar.Enabled = False
+          Me.BT_NuevoModificar.Enabled = False
+          Me.TextRUT.BackColor = RGB(199, 199, 199)
+          Me.TextOBS.BackColor = RGB(199, 199, 199)
+          Me.BT_agregar.BackColor = RGB(199, 199, 199)
+          Me.BT_modificar.BackColor = RGB(199, 199, 199)
+          Me.BT_eliminar.BackColor = RGB(199, 199, 199)
+          Me.BT_NuevoModificar.BackColor = RGB(199, 199, 199)
+          Me.Label_INGR_MODF.Caption = "INGRESE EL NUEVO RUT Y OBSERVACION"
+          
+        Else
+          MsgBox "ENTENDIDO", vbInformation
+          
+          Me.TextRUT.SetFocus
+          Me.Height = 276
+          Me.TextRUT.SelStart = 0
+          Me.TextRUT.SelLength = Len(Me.TextRUT.Text)
+        End If
+    End If
+End Sub
+
+
+Private Sub TextOBS_Change()
+NumeroDatosOBS = Hoja3.Range("B" & Rows.Count).End(xlUp).Row
+   Me.LT_observ = Clear
+   Me.LT_observ.RowSource = Clear
+   Y = 0
+     Me.LT_observ.ColumnCount = 2
+   
+    For Fila = 2 To NumeroDatosOBS
+      Rut = Hoja3.Cells(Fila, 2).Value
+        If UCase(Rut) Like "*" & UCase(Me.TextOBS.Value) & "*" Then
+         Me.LT_observ.AddItem
+         Me.LT_observ.List(Y, 0) = Hoja3.Cells(Fila, 1).Value
+         Me.LT_observ.List(Y, 1) = Hoja3.Cells(Fila, 2).Value
+         Y = Y + 1
+        End If
+        
+     Next
+    
+    
+End Sub
+
+Private Sub UserForm_Activate()
+Me.TextRUT.SetFocus
+  Dim NumeroFilas As Long
+      NumeroFilas = Hoja3.Range("A" & Rows.Count).End(xlUp).Row
+      Me.Height = 276
+      Me.LT_observ.ColumnCount = 2
+      Me.LT_observ.ColumnWidths = "100;100"
+    Dim datos As Range
+     Set datos = Hoja3.Range("Observaciones!A2:B" & NumeroFilas)
+      Me.LT_observ.RowSource = datos.Address
+End Sub
+
